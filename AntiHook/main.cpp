@@ -32,7 +32,7 @@ BOOL nt_query_information_process_process_debug_object()
   // ProcessDebugFlags
   const auto process_debug_object_handle = 0x1e;
   const auto nt_query_info_process = reinterpret_cast<p_nt_query_information_process>(GetProcAddress(
-                                       GetModuleHandleW(L"ntdll.dll"), "NtQueryInformationProcess"));
+                                       GetModuleHandleA("ntdll.dll"), "NtQueryInformationProcess"));
   HANDLE h_debug_object = nullptr;
   const unsigned long d_process_information_length = sizeof(ULONG) * 2;
   const auto status = nt_query_info_process(GetCurrentProcess(), process_debug_object_handle, &h_debug_object,
