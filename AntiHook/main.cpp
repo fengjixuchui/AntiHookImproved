@@ -34,10 +34,24 @@ DWORD Unhook(const char *lpLibName) {
 int main(int argc, char *argv[]) {
   DWORD ntdll = Unhook("ntdll.dll");
   if (ntdll == 0) {
-    log("ntdll restored");
+    log("ntdll restored\r\n");
   }
   else {
-    log("ntdll fail restored");
+    log("ntdll fail restored\r\n");
+  }
+  DWORD kernelbase = Unhook("kernelbase.dll");
+  if (kernelbase == 0) {
+    log("kernelbase restored\r\n");
+  }
+  else {
+    log("kernelbase fail restored\r\n");
+  }
+  DWORD user32 = Unhook("user32.dll");
+  if (user32 == 0) {
+    log("user32 restored\r\n");
+  }
+  else {
+    log("user32 fail restored\r\n");
   }
 #pragma warning(suppress: 6031)
   getchar();
