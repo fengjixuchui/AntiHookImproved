@@ -10,10 +10,10 @@
 #include <stdarg.h>
 #include <Windows.h>
 
-#include "AntiHook.h"
-#include "err.h"
+#include "AntiHook.hpp"
+#include <iostream>
 
-HMODULE AddModule(const LPSTR lpLibName) {
+HMODULE AddModule(const char *lpLibName) {
   HMODULE hModule = GetModuleHandleA(lpLibName);
   if (!hModule) {
     hModule = LoadLibraryA(lpLibName);
@@ -21,12 +21,19 @@ HMODULE AddModule(const LPSTR lpLibName) {
   return hModule;
 }
 
-int main(int argc, char *argv[]) {
-  HMODULE hModule = AddModule("ntdll.dll");
+DWORD Unhook(const char *lpLibName) {
+  HMODULE hModule = AddModule(lpLibName);
   DWORD hMod = UnhookModule(hModule);
-  // Free the randomly added module.
+  // free lib
   if (hMod) {
     FreeModule(hModule);
+  }
+  return hMod;
+}
+
+int main(int argc, char *argv[]) {
+  DWORD ntdll;
+  if (ntdll = Unhook("ntdll.dll") == 0) {
   }
 #pragma warning(suppress: 6031)
   getchar();

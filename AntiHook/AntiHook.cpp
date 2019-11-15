@@ -2,8 +2,7 @@
 #include <Psapi.h>
 #include <Shlwapi.h>
 
-#include "AntiHook.h"
-#include "err.h"
+#include "AntiHook.hpp"
 
 #pragma comment(lib, "Shlwapi.lib")
 
@@ -228,7 +227,7 @@ static BOOL CompareFilePaths(LPCSTR lpszFilePath1, LPCSTR lpszFilePath2) {
   strncpy(szFilePath1, lpszFilePath1, sizeof(szFilePath1) - 1);
 #pragma warning(suppress: 6053)
   bRet = PathRemoveFileSpec(
-           szFilePath1		// Pointer to NULL-terminated string of length MAX_PATH.
+           (LPWSTR)szFilePath1		// Pointer to NULL-terminated string of length MAX_PATH.
          );
   // Get second path.
   CHAR szFilePath2[MAX_PATH];
@@ -236,7 +235,7 @@ static BOOL CompareFilePaths(LPCSTR lpszFilePath1, LPCSTR lpszFilePath2) {
   strncpy(szFilePath2, lpszFilePath2, sizeof(szFilePath2) - 1);
 #pragma warning(suppress: 6053)
   bRet = PathRemoveFileSpec(
-           szFilePath2		// Pointer to NULL-terminated string of length MAX_PATH.
+           (LPWSTR)szFilePath2		// Pointer to NULL-terminated string of length MAX_PATH.
          );
   return !_stricmp(szFilePath1, szFilePath2) ? TRUE : FALSE;
 }
@@ -298,7 +297,7 @@ DWORD CheckModuleForHooks(const HMODULE hModule, LPHOOK_FUNC_INFO *infos, const 
       info->lpFuncAddress = fpFunc;
       // Get function name.
       // Default name, if no name exists.
-      LPSTR lpszFuncName = "<no name>";
+      LPSTR lpszFuncName = (LPSTR)"<no name>";
       // Copy it into the struct.
       strncpy(info->szFuncName, lpszFuncName, sizeof(info->szFuncName) - 1);
       // Check if the function exists within the names.
@@ -357,8 +356,8 @@ DWORD CheckModuleForHooks(const HMODULE hModule, LPHOOK_FUNC_INFO *infos, const 
       GetModuleName(hModule, szTargetModName, sizeof(szTargetModName));
       CHAR szHookModName[MAX_PATH];
       ZeroMemory(szHookModName, sizeof(szHookModName));
-      GetModuleName(mbi.AllocationBase, szHookModName, sizeof(szHookModName));
-      if (StrStrI(szTargetModName, "kernel32.dll") && StrStrI(szHookModName, "kernelbase.dll")) {
+      GetModuleName((HMODULE)mbi.AllocationBase, szHookModName, sizeof(szHookModName));
+      if (StrStrI((LPWSTR)szTargetModName, (LPWSTR)"kernel32.dll") && StrStrI((LPWSTR)szHookModName, (LPWSTR)"kernelbase.dll")) {
         FreeHookFuncInfo(&info);
         continue;
       }
@@ -449,7 +448,7 @@ static DWORD ReplaceExecSection(const HMODULE hModule, const LPVOID lpMapping) {
   // Walk the section headers and find the .text section.
   for (WORD i = 0; i < pinh->FileHeader.NumberOfSections; i++) {
     PIMAGE_SECTION_HEADER pish = (PIMAGE_SECTION_HEADER)((DWORD_PTR)IMAGE_FIRST_SECTION(pinh) + ((DWORD_PTR)IMAGE_SIZEOF_SECTION_HEADER * i));
-    if (!strcmp(pish->Name, ".text")) {
+    if (!strcmp((const char *)pish->Name, ".text")) {
       // Deprotect the module's memory region for write permissions.
       DWORD flProtect = ProtectMemory(
                           (LPVOID)((DWORD_PTR)hModule + (DWORD_PTR)pish->VirtualAddress),	// Address to protect.
@@ -515,7 +514,7 @@ DWORD UnhookModule(const HMODULE hModule) {
   }
   // Get a handle to the module's file.
   HANDLE hFile = CreateFile(
-                   szModuleName,		// Module path name.
+                   (LPWSTR)szModuleName,		// Module path name.
                    GENERIC_READ,		// Desired access.
                    FILE_SHARE_READ,	// Share access.
                    NULL,				// Security attributes.

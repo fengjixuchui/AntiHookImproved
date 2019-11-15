@@ -15,21 +15,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AntiHook.c">
+    <ClCompile Include="AntiHook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="err.c">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AntiHook.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="err.h">
+    <ClInclude Include="AntiHook.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
