@@ -32,8 +32,12 @@ DWORD Unhook(const char *lpLibName) {
 }
 
 int main(int argc, char *argv[]) {
-  DWORD ntdll;
-  if (ntdll = Unhook("ntdll.dll") == 0) {
+  DWORD ntdll = Unhook("ntdll.dll");
+  if (ntdll == 0) {
+    log("ntdll restored");
+  }
+  else {
+    log("ntdll fail restored");
   }
 #pragma warning(suppress: 6031)
   getchar();

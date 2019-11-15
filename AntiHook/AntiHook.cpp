@@ -513,8 +513,8 @@ DWORD UnhookModule(const HMODULE hModule) {
     return dwRet;
   }
   // Get a handle to the module's file.
-  HANDLE hFile = CreateFile(
-                   (LPWSTR)szModuleName,		// Module path name.
+  HANDLE hFile = CreateFileA(
+                   szModuleName,		// Module path name.
                    GENERIC_READ,		// Desired access.
                    FILE_SHARE_READ,	// Share access.
                    NULL,				// Security attributes.
