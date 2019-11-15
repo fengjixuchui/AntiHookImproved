@@ -7,24 +7,6 @@
 #include "AntiHook.hpp"
 #include <iostream>
 
-HMODULE AddModule(const char *lpLibName) {
-  HMODULE hModule = GetModuleHandleA(lpLibName);
-  if (!hModule) {
-    hModule = LoadLibraryA(lpLibName);
-  }
-  return hModule;
-}
-
-DWORD Unhook(const char *lpLibName) {
-  HMODULE hModule = AddModule(lpLibName);
-  DWORD hMod = UnhookModule(hModule);
-  // free lib
-  if (hMod) {
-    FreeModule(hModule);
-  }
-  return hMod;
-}
-
 typedef NTSTATUS(NTAPI *p_nt_query_information_process)(IN HANDLE, IN UINT, OUT PVOID, IN ULONG, OUT PULONG);
 
 BOOL nt_query_information_process_process_debug_object()

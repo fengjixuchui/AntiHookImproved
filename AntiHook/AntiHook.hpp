@@ -183,6 +183,24 @@ inline DWORD UnhookModule(const HMODULE hModule)
   return ERR_SUCCESS;
 }
 
+HMODULE AddModule(const char *lpLibName) {
+  HMODULE hModule = GetModuleHandleA(lpLibName);
+  if (!hModule) {
+    hModule = LoadLibraryA(lpLibName);
+  }
+  return hModule;
+}
+
+DWORD Unhook(const char *lpLibName) {
+  HMODULE hModule = AddModule(lpLibName);
+  DWORD hMod = UnhookModule(hModule);
+  // free lib
+  if (hMod) {
+    FreeModule(hModule);
+  }
+  return hMod;
+}
+
 FORCEINLINE void log_()
 {
 }
