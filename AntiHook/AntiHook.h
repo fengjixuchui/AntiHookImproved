@@ -8,7 +8,7 @@
 
 /*
  * Struct that describes a hooked function.
- * 
+ *
  * Members:
  * - hModule: Handle to the function's module.
  * - wOrdinal: The ordinal number of the function.
@@ -18,12 +18,12 @@
  * - lpHookAddress: Destinaton of the address of the redirection.
  */
 typedef struct _HOOK_FUNC_INFO {
-	HMODULE hModule;							// Module of the hooked function, if exists.
-	WORD wOrdinal;							// Ordinal of the function.
-	LPVOID lpFuncAddress;						// Address of the function.
-	CHAR szFuncName[SIZEOF_FUNC_NAME];			// Name of hooked function.
-	CHAR szHookModuleName[SIZEOF_FUNC_NAME];	// Name of the hooking module, if exists.
-	LPVOID lpHookAddress;						// Destinaton of the address of the redirection.
+  HMODULE hModule;							// Module of the hooked function, if exists.
+  WORD wOrdinal;							// Ordinal of the function.
+  LPVOID lpFuncAddress;						// Address of the function.
+  CHAR szFuncName[SIZEOF_FUNC_NAME];			// Name of hooked function.
+  CHAR szHookModuleName[SIZEOF_FUNC_NAME];	// Name of the hooking module, if exists.
+  LPVOID lpHookAddress;						// Destinaton of the address of the redirection.
 } HOOK_FUNC_INFO, *LPHOOK_FUNC_INFO;
 
 /*
