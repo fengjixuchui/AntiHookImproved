@@ -169,7 +169,7 @@ extern "C" NTSYSAPI NTSTATUS NTAPI LdrGetProcedureAddress(
   OUT PVOID *FunctionAddress
 );
 
-inline DWORD GetModuleName(const HMODULE hModule, LPSTR szModuleName, const DWORD nSize)
+DWORD GetModuleName(const HMODULE hModule, LPSTR szModuleName, const DWORD nSize)
 {
   DWORD dwLength = GetModuleFileNameExA(
                      GetCurrentProcess(),	// Process handle.
@@ -186,7 +186,7 @@ inline DWORD GetModuleName(const HMODULE hModule, LPSTR szModuleName, const DWOR
   return ERR_SUCCESS;
 }
 
-inline static DWORD ProtectMemory(const LPVOID lpAddress, const SIZE_T nSize, const DWORD flNewProtect)
+DWORD ProtectMemory(const LPVOID lpAddress, const SIZE_T nSize, const DWORD flNewProtect)
 {
   DWORD flOldProtect = 0;
   BOOL bRet = VirtualProtect(
@@ -201,7 +201,7 @@ inline static DWORD ProtectMemory(const LPVOID lpAddress, const SIZE_T nSize, co
   return flOldProtect;
 }
 
-inline static DWORD ReplaceExecSection(const HMODULE hModule, const LPVOID lpMapping)
+DWORD ReplaceExecSection(const HMODULE hModule, const LPVOID lpMapping)
 {
   // Parse the PE headers.
   PIMAGE_DOS_HEADER pidh = (PIMAGE_DOS_HEADER)lpMapping;
@@ -243,7 +243,7 @@ inline static DWORD ReplaceExecSection(const HMODULE hModule, const LPVOID lpMap
   return ERR_TEXT_SECTION_NOT_FOUND;
 }
 
-inline DWORD UnhookModule(const HMODULE hModule)
+DWORD UnhookModule(const HMODULE hModule)
 {
   CHAR szModuleName[MAX_PATH];
   ZeroMemory(szModuleName, sizeof(szModuleName));
@@ -330,17 +330,17 @@ inline DWORD UnhookModule(const HMODULE hModule)
 }
 
 
-FORCEINLINE void log_()
+void log_()
 {
 }
 
 template <typename First, typename ...Rest>
-FORCEINLINE void log_(First &&message, Rest &&...rest)
+void log_(First &&message, Rest &&...rest)
 {
   std::cout << std::forward<First>(message);
   log_(std::forward<Rest>(rest)...);
 }
-static inline void *__teb()
+void *__teb()
 {
 #ifdef _AMD64_
   return (void *)__readgsqword(0x30);
@@ -350,9 +350,8 @@ static inline void *__teb()
 }
 
 
-static inline unsigned int __pid()
+unsigned int __pid()
 {
-  // TEB::ClientId.UniqueProcessId:
 #ifdef _AMD64_
   return *(unsigned int *)((unsigned char *)__teb() + 0x40);
 #else
@@ -360,28 +359,27 @@ static inline unsigned int __pid()
 #endif
 }
 
-static inline unsigned int __tid()
+unsigned int __tid()
 {
-  // TEB::ClientId.UniqueThreadId:
 #ifdef _AMD64_
   return *(unsigned int *)((unsigned char *)__teb() + 0x48);
 #else
   return *(unsigned int *)((unsigned char *)__teb() + 0x24);
 #endif
 }
-static PVOID Alloc(OPTIONAL PVOID Base, SIZE_T Size, ULONG Protect)
+PVOID Alloc(OPTIONAL PVOID Base, SIZE_T Size, ULONG Protect)
 {
   NTSTATUS Status = NtAllocateVirtualMemory(NtCurrentProcess(), &Base, Base ? 12 : 0, &Size, MEM_RESERVE | MEM_COMMIT, Protect);
   return NT_SUCCESS(Status) ? Base : NULL;
 }
 
-static VOID Free(PVOID Base)
+VOID Free(PVOID Base)
 {
   SIZE_T RegionSize = 0;
   NtFreeVirtualMemory(NtCurrentProcess(), &Base, &RegionSize, MEM_RELEASE);
 }
 
-static BOOLEAN NTAPI EnumProcesses_(
+BOOLEAN NTAPI EnumProcesses_(
   BOOLEAN(*Callback)(
     PWRK_SYSTEM_PROCESS_INFORMATION Process,
     OPTIONAL PVOID Argument
@@ -406,7 +404,7 @@ static BOOLEAN NTAPI EnumProcesses_(
   return TRUE;
 }
 
-static BOOLEAN SuspendResumeCallback(PWRK_SYSTEM_PROCESS_INFORMATION Process, PVOID Arg)
+BOOLEAN SuspendResumeCallback(PWRK_SYSTEM_PROCESS_INFORMATION Process, PVOID Arg)
 {
   if (!Process || !Arg) return FALSE;
   PSUSPEND_RESUME_INFO Info = (PSUSPEND_RESUME_INFO)Arg;
@@ -431,7 +429,7 @@ static BOOLEAN SuspendResumeCallback(PWRK_SYSTEM_PROCESS_INFORMATION Process, PV
   return FALSE; // Stop the processes enumeration loop
 }
 
-static BOOLEAN SuspendThreads()
+BOOLEAN SuspendThreads()
 {
   SUSPEND_RESUME_INFO Info;
   Info.CurrentPid = __pid();
@@ -440,7 +438,7 @@ static BOOLEAN SuspendThreads()
   return EnumProcesses_(SuspendResumeCallback, &Info);
 }
 
-static BOOLEAN ResumeThreads()
+BOOLEAN ResumeThreads()
 {
   SUSPEND_RESUME_INFO Info;
   Info.CurrentPid = __pid();
@@ -458,10 +456,8 @@ HMODULE AddModule(const char *lpLibName) {
 }
 
 DWORD Unhook(const char *lpLibName) {
-  SuspendThreads();
   HMODULE hModule = AddModule(lpLibName);
   DWORD hMod = UnhookModule(hModule);
-  ResumeThreads();
   // free lib
   if (hMod) {
     FreeModule(hModule);
