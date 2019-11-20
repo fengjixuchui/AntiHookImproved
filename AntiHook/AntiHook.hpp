@@ -1,4 +1,5 @@
 #pragma once
+
 #ifndef __ANTIHOOK_H__
 #define __ANTIHOOK_H__
 
@@ -9,6 +10,7 @@
 #include <ntstatus.h>
 
 #pragma comment(lib, "Shlwapi.lib")
+
 #define NtCurrentProcess() ((HANDLE)-1)
 
 typedef enum _ERR_CODE {
@@ -168,6 +170,7 @@ extern "C" NTSYSAPI NTSTATUS NTAPI LdrGetProcedureAddress(
   IN OPTIONAL WORD Oridinal,
   OUT PVOID *FunctionAddress
 );
+
 void *__teb()
 {
 #ifdef _AMD64_
@@ -176,7 +179,6 @@ void *__teb()
   return (void *)__readfsdword(0x18);
 #endif
 }
-
 
 unsigned int __pid()
 {
@@ -195,6 +197,7 @@ unsigned int __tid()
   return *(unsigned int *)((unsigned char *)__teb() + 0x24);
 #endif
 }
+
 PVOID Alloc(OPTIONAL PVOID Base, SIZE_T Size, ULONG Protect)
 {
   NTSTATUS Status = NtAllocateVirtualMemory(NtCurrentProcess(), &Base, Base ? 12 : 0, &Size, MEM_RESERVE | MEM_COMMIT, Protect);
@@ -274,6 +277,7 @@ BOOLEAN ResumeThreads()
   Info.Type = srtResume;
   return EnumProcesses_(SuspendResumeCallback, &Info);
 }
+
 DWORD GetModuleName(const HMODULE hModule, LPSTR szModuleName, const DWORD nSize)
 {
   DWORD dwLength = GetModuleFileNameExA(
@@ -436,7 +440,6 @@ DWORD UnhookModule(const HMODULE hModule)
   return ERR_SUCCESS;
 }
 
-
 void log_()
 {
 }
@@ -447,7 +450,6 @@ void log_(First &&message, Rest &&...rest)
   std::cout << std::forward<First>(message);
   log_(std::forward<Rest>(rest)...);
 }
-
 
 HMODULE AddModule(const char *lpLibName) {
   HMODULE hModule = GetModuleHandleA(lpLibName);
