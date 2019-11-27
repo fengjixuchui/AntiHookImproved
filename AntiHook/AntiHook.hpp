@@ -469,6 +469,9 @@ DWORD Unhook(const char *lpLibName) {
   if (hMod) {
     FreeModule(hModule);
   }
+  else {
+    FreeModule(hModule);
+  }
   return hMod;
 }
 
