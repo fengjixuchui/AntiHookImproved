@@ -327,6 +327,7 @@ DWORD ReplaceExecSection(const HMODULE hModule, const LPVOID lpMapping)
                           PAGE_EXECUTE_READWRITE											// Desired protection.
                         );
       if (!flProtect) {
+        ResumeThreads();
         // Deprotecting failed!
         return ERR_MEM_DEPROTECT_FAILED;
       }
@@ -343,6 +344,7 @@ DWORD ReplaceExecSection(const HMODULE hModule, const LPVOID lpMapping)
                     flProtect														// Revert to old protection.
                   );
       if (!flProtect) {
+        ResumeThreads();
         // Reprotecting went wrong!
         return ERR_MEM_REPROTECT_FAILED;
       }
