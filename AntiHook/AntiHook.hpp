@@ -346,6 +346,7 @@ DWORD ReplaceExecSection(const HMODULE hModule, const LPVOID lpMapping)
         // Reprotecting went wrong!
         return ERR_MEM_REPROTECT_FAILED;
       }
+      ResumeThreads();
       return ERR_SUCCESS;
     }
   }
