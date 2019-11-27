@@ -327,11 +327,11 @@ DWORD UnhookModule(const HMODULE hModule)
   HANDLE hFile = CreateFileA(
                    szModuleName,		// Module path name.
                    GENERIC_READ,		// Desired access.
-                   FILE_SHARE_READ,	// Share access.
+                   FILE_SHARE_READ,	    // Share access.
                    NULL,				// Security attributes.
                    OPEN_EXISTING,		// Creation disposition.
                    0,					// Attributes.
-                   NULL				// Template file handle.
+                   NULL				    // Template file handle.
                  );
   if (hFile == INVALID_HANDLE_VALUE) {
     // Failed to open file.
@@ -340,11 +340,11 @@ DWORD UnhookModule(const HMODULE hModule)
   // Create a mapping object for the module.
   HANDLE hFileMapping = CreateFileMapping(
                           hFile,						// Handle to file.
-                          NULL,						// Mapping attributes.
+                          NULL,						    // Mapping attributes.
                           PAGE_READONLY | SEC_IMAGE,	// Page protection.
                           0,							// Maximum size high DWORD.
                           0,							// Maximum size low DWORD.
-                          NULL						// Name of mapping object.
+                          NULL						    // Name of mapping object.
                         );
   if (!hFileMapping) {
     // Failed to create mapping handle.
@@ -387,7 +387,6 @@ DWORD UnhookModule(const HMODULE hModule)
     CloseHandle(hFile);
     return dwRet;
   }
-  //getchar();
   // Clean up.
   UnmapViewOfFile(lpMapping);
   CloseHandle(hFileMapping);
