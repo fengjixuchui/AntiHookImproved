@@ -106,24 +106,6 @@ extern "C" NTSYSAPI NTSTATUS NTAPI NtAllocateVirtualMemory(
   IN ULONG AllocationType,
   IN ULONG Protect
 );
-
-extern "C" NTSYSAPI NTSTATUS NTAPI NtProtectVirtualMemory(
-  IN HANDLE  ProcessHandle,
-  IN OUT PVOID *BaseAddress,
-  IN OUT PSIZE_T NumberOfBytesToProtect,
-  IN ULONG NewAccessProtection,
-  OUT PULONG OldAccessProtection
-);
-
-extern "C" NTSYSAPI NTSTATUS NTAPI NtQueryVirtualMemory(
-  IN HANDLE ProcessHandle,
-  IN PVOID BaseAddress,
-  IN WRK_MEMORY_INFORMATION_CLASS MemoryInformationClass,
-  OUT PVOID Buffer,
-  IN SIZE_T Length,
-  OUT OPTIONAL PSIZE_T ResultLength
-);
-
 extern "C" NTSYSAPI NTSTATUS NTAPI NtFreeVirtualMemory(
   IN HANDLE ProcessHandle,
   IN PVOID *BaseAddress,
@@ -139,36 +121,6 @@ extern "C" NTSYSAPI NTSTATUS NTAPI NtSuspendThread(
 extern "C" NTSYSAPI NTSTATUS NTAPI NtResumeThread(
   IN HANDLE ThreadHandle,
   OUT OPTIONAL PULONG SuspendCount
-);
-
-extern "C" NTSYSAPI NTSTATUS NTAPI NtGetContextThread(
-  IN HANDLE ThreadHandle,
-  OUT PCONTEXT Context
-);
-
-extern "C" NTSYSAPI NTSTATUS NTAPI NtSetContextThread(
-  IN HANDLE ThreadHandle,
-  IN PCONTEXT Context
-);
-
-extern "C" NTSYSAPI NTSTATUS NTAPI NtFlushInstructionCache(
-  IN HANDLE ProcessHandle,
-  IN PVOID BaseAddress,
-  IN SIZE_T NumberOfBytesToFlush
-);
-
-extern "C" NTSYSAPI NTSTATUS NTAPI LdrGetDllHandle(
-  IN OPTIONAL PWORD pwPath,
-  IN OPTIONAL PVOID Unused,
-  IN PUNICODE_STRING ModuleFileName,
-  OUT PHANDLE pHModule
-);
-
-extern "C" NTSYSAPI NTSTATUS NTAPI LdrGetProcedureAddress(
-  IN HMODULE ModuleHandle,
-  IN OPTIONAL PANSI_STRING FunctionName,
-  IN OPTIONAL WORD Oridinal,
-  OUT PVOID *FunctionAddress
 );
 
 void *__teb()
