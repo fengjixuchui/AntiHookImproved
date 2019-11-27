@@ -350,8 +350,8 @@ DWORD ReplaceExecSection(const HMODULE hModule, const LPVOID lpMapping)
     }
   }
   // .text section not found?
-  return ERR_TEXT_SECTION_NOT_FOUND;
   ResumeThreads();
+  return ERR_TEXT_SECTION_NOT_FOUND;
 }
 
 DWORD UnhookModule(const HMODULE hModule)
