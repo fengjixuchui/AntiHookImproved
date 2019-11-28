@@ -81,6 +81,12 @@ typedef enum _WRK_MEMORY_INFORMATION_CLASS {
   MemoryBasicInformation
 } WRK_MEMORY_INFORMATION_CLASS, * PWRK_MEMORY_INFORMATION_CLASS;
 
+extern "C" NTSYSCALLAPI NTSTATUS NTAPI NtFlushInstructionCache(
+  _In_ HANDLE ProcessHandle,
+  _In_opt_ PVOID BaseAddress,
+  _In_ SIZE_T Length
+);
+
 extern "C" NTSYSAPI NTSTATUS NTAPI NtOpenThread(
   OUT PHANDLE ThreadHandle,
   IN ACCESS_MASK DesiredAccess,
@@ -375,6 +381,7 @@ DWORD UnhookModule(const HMODULE hModule)
             hModule,		// Handle to the hooked module.
             lpMapping		// Pointer to the newly mapped module.
           );
+  NtFlushInstructionCache(NtCurrentProcess(), NULL, 0);
   ResumeThreads();
   if (dwRet) {
     // Something went wrong!
