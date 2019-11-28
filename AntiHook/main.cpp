@@ -40,5 +40,6 @@ int main(int argc, char *argv[]) {
   {
     log_("CheckRemoteDebuggerPresent detected\r\n");
   }
+  getchar();
   return 0;
 }

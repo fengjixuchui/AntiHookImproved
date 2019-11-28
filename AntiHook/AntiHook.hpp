@@ -81,6 +81,12 @@ typedef enum _WRK_MEMORY_INFORMATION_CLASS {
   MemoryBasicInformation
 } WRK_MEMORY_INFORMATION_CLASS, * PWRK_MEMORY_INFORMATION_CLASS;
 
+extern "C" NTSYSCALLAPI NTSTATUS NTAPI NtFlushInstructionCache(
+  _In_ HANDLE ProcessHandle,
+  _In_opt_ PVOID BaseAddress,
+  _In_ SIZE_T Length
+);
+
 extern "C" NTSYSAPI NTSTATUS NTAPI NtOpenThread(
   OUT PHANDLE ThreadHandle,
   IN ACCESS_MASK DesiredAccess,
@@ -106,24 +112,6 @@ extern "C" NTSYSAPI NTSTATUS NTAPI NtAllocateVirtualMemory(
   IN ULONG AllocationType,
   IN ULONG Protect
 );
-
-extern "C" NTSYSAPI NTSTATUS NTAPI NtProtectVirtualMemory(
-  IN HANDLE  ProcessHandle,
-  IN OUT PVOID *BaseAddress,
-  IN OUT PSIZE_T NumberOfBytesToProtect,
-  IN ULONG NewAccessProtection,
-  OUT PULONG OldAccessProtection
-);
-
-extern "C" NTSYSAPI NTSTATUS NTAPI NtQueryVirtualMemory(
-  IN HANDLE ProcessHandle,
-  IN PVOID BaseAddress,
-  IN WRK_MEMORY_INFORMATION_CLASS MemoryInformationClass,
-  OUT PVOID Buffer,
-  IN SIZE_T Length,
-  OUT OPTIONAL PSIZE_T ResultLength
-);
-
 extern "C" NTSYSAPI NTSTATUS NTAPI NtFreeVirtualMemory(
   IN HANDLE ProcessHandle,
   IN PVOID *BaseAddress,
@@ -139,36 +127,6 @@ extern "C" NTSYSAPI NTSTATUS NTAPI NtSuspendThread(
 extern "C" NTSYSAPI NTSTATUS NTAPI NtResumeThread(
   IN HANDLE ThreadHandle,
   OUT OPTIONAL PULONG SuspendCount
-);
-
-extern "C" NTSYSAPI NTSTATUS NTAPI NtGetContextThread(
-  IN HANDLE ThreadHandle,
-  OUT PCONTEXT Context
-);
-
-extern "C" NTSYSAPI NTSTATUS NTAPI NtSetContextThread(
-  IN HANDLE ThreadHandle,
-  IN PCONTEXT Context
-);
-
-extern "C" NTSYSAPI NTSTATUS NTAPI NtFlushInstructionCache(
-  IN HANDLE ProcessHandle,
-  IN PVOID BaseAddress,
-  IN SIZE_T NumberOfBytesToFlush
-);
-
-extern "C" NTSYSAPI NTSTATUS NTAPI LdrGetDllHandle(
-  IN OPTIONAL PWORD pwPath,
-  IN OPTIONAL PVOID Unused,
-  IN PUNICODE_STRING ModuleFileName,
-  OUT PHANDLE pHModule
-);
-
-extern "C" NTSYSAPI NTSTATUS NTAPI LdrGetProcedureAddress(
-  IN HMODULE ModuleHandle,
-  IN OPTIONAL PANSI_STRING FunctionName,
-  IN OPTIONAL WORD Oridinal,
-  OUT PVOID *FunctionAddress
 );
 
 void *__teb()
@@ -312,7 +270,6 @@ DWORD ProtectMemory(const LPVOID lpAddress, const SIZE_T nSize, const DWORD flNe
 
 DWORD ReplaceExecSection(const HMODULE hModule, const LPVOID lpMapping)
 {
-  SuspendThreads();
   // Parse the PE headers.
   PIMAGE_DOS_HEADER pidh = (PIMAGE_DOS_HEADER)lpMapping;
   PIMAGE_NT_HEADERS pinh = (PIMAGE_NT_HEADERS)((DWORD_PTR)lpMapping + pidh->e_lfanew);
@@ -351,7 +308,6 @@ DWORD ReplaceExecSection(const HMODULE hModule, const LPVOID lpMapping)
   }
   // .text section not found?
   return ERR_TEXT_SECTION_NOT_FOUND;
-  ResumeThreads();
 }
 
 DWORD UnhookModule(const HMODULE hModule)
@@ -372,11 +328,11 @@ DWORD UnhookModule(const HMODULE hModule)
   HANDLE hFile = CreateFileA(
                    szModuleName,		// Module path name.
                    GENERIC_READ,		// Desired access.
-                   FILE_SHARE_READ,	// Share access.
+                   FILE_SHARE_READ,	    // Share access.
                    NULL,				// Security attributes.
                    OPEN_EXISTING,		// Creation disposition.
                    0,					// Attributes.
-                   NULL				// Template file handle.
+                   NULL				    // Template file handle.
                  );
   if (hFile == INVALID_HANDLE_VALUE) {
     // Failed to open file.
@@ -385,11 +341,11 @@ DWORD UnhookModule(const HMODULE hModule)
   // Create a mapping object for the module.
   HANDLE hFileMapping = CreateFileMapping(
                           hFile,						// Handle to file.
-                          NULL,						// Mapping attributes.
+                          NULL,						    // Mapping attributes.
                           PAGE_READONLY | SEC_IMAGE,	// Page protection.
                           0,							// Maximum size high DWORD.
                           0,							// Maximum size low DWORD.
-                          NULL						// Name of mapping object.
+                          NULL						    // Name of mapping object.
                         );
   if (!hFileMapping) {
     // Failed to create mapping handle.
@@ -420,10 +376,13 @@ DWORD UnhookModule(const HMODULE hModule)
   }
   // printf("Mapping at [%016p]\n", lpMapping);
   // Unhook hooks.
+  SuspendThreads();
   dwRet = ReplaceExecSection(
             hModule,		// Handle to the hooked module.
             lpMapping		// Pointer to the newly mapped module.
           );
+  NtFlushInstructionCache(NtCurrentProcess(), NULL, 0);
+  ResumeThreads();
   if (dwRet) {
     // Something went wrong!
     // Clean up.
@@ -432,7 +391,6 @@ DWORD UnhookModule(const HMODULE hModule)
     CloseHandle(hFile);
     return dwRet;
   }
-  //getchar();
   // Clean up.
   UnmapViewOfFile(lpMapping);
   CloseHandle(hFileMapping);
@@ -464,6 +422,9 @@ DWORD Unhook(const char *lpLibName) {
   DWORD hMod = UnhookModule(hModule);
   // free lib
   if (hMod) {
+    FreeModule(hModule);
+  }
+  else {
     FreeModule(hModule);
   }
   return hMod;
