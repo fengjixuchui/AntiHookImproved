@@ -264,7 +264,6 @@ DWORD ProtectMemory(const LPVOID lpAddress, const SIZE_T nSize, const DWORD flNe
 
 DWORD ReplaceExecSection(const HMODULE hModule, const LPVOID lpMapping)
 {
-  SuspendThreads();
   // Parse the PE headers.
   PIMAGE_DOS_HEADER pidh = (PIMAGE_DOS_HEADER)lpMapping;
   PIMAGE_NT_HEADERS pinh = (PIMAGE_NT_HEADERS)((DWORD_PTR)lpMapping + pidh->e_lfanew);
@@ -279,7 +278,6 @@ DWORD ReplaceExecSection(const HMODULE hModule, const LPVOID lpMapping)
                           PAGE_EXECUTE_READWRITE											// Desired protection.
                         );
       if (!flProtect) {
-        ResumeThreads();
         // Deprotecting failed!
         return ERR_MEM_DEPROTECT_FAILED;
       }
@@ -296,16 +294,13 @@ DWORD ReplaceExecSection(const HMODULE hModule, const LPVOID lpMapping)
                     flProtect														// Revert to old protection.
                   );
       if (!flProtect) {
-        ResumeThreads();
         // Reprotecting went wrong!
         return ERR_MEM_REPROTECT_FAILED;
       }
-      ResumeThreads();
       return ERR_SUCCESS;
     }
   }
   // .text section not found?
-  ResumeThreads();
   return ERR_TEXT_SECTION_NOT_FOUND;
 }
 
@@ -375,10 +370,12 @@ DWORD UnhookModule(const HMODULE hModule)
   }
   // printf("Mapping at [%016p]\n", lpMapping);
   // Unhook hooks.
+  SuspendThreads();
   dwRet = ReplaceExecSection(
             hModule,		// Handle to the hooked module.
             lpMapping		// Pointer to the newly mapped module.
           );
+  ResumeThreads();
   if (dwRet) {
     // Something went wrong!
     // Clean up.
